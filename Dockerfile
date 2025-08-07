@@ -1,14 +1,12 @@
-# Use OpenJDK as the base image
-FROM openjdk:21-jdk-slim
-
-# Set the working directory
+# -------- Stage 1: Build the JAR --------
+FROM maven:3.9.6-eclipse-temurin-21-alpine AS build
 WORKDIR /app
+COPY . .
+RUN mvn clean package -DskipTests
 
-# Copy the JAR file
-COPY target/*.jar app.jar
-
-# Expose the port (Render will auto-detect this)
+# -------- Stage 2: Run the JAR --------
+FROM eclipse-temurin:21-jdk-alpine
+WORKDIR /app
+COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8081
-
-# Command to run the application
 ENTRYPOINT ["java", "-jar", "app.jar"]
